@@ -2,9 +2,9 @@
 
 namespace App\Filament\Resources;
 
-use App\Filament\Resources\StateResource\Pages;
-use App\Filament\Resources\StateResource\RelationManagers;
-use App\Models\State;
+use App\Filament\Resources\UserResource\Pages;
+use App\Filament\Resources\UserResource\RelationManagers;
+use App\Models\User;
 use Filament\Forms;
 use Filament\Resources\Form;
 use Filament\Resources\Resource;
@@ -16,15 +16,14 @@ use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Card;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Forms\Components\Select;
+use Hash;
 
-
-class StateResource extends Resource
+class UserResource extends Resource
 {
-    protected static ?string $model = State::class;
+    protected static ?string $model = User::class;
 
-    protected static ?string $navigationIcon = 'heroicon-o-office-building';
-    protected static ?string $navigationGroup = 'System Management';
-    protected static ?int $navigationSort = 2;
+    protected static ?string $navigationIcon = 'heroicon-o-user';
+    protected static ?string $navigationGroup = 'User Management';
 
     public static function form(Form $form): Form
     {
@@ -32,8 +31,18 @@ class StateResource extends Resource
             ->schema([
                 Card::make()
                 ->schema([
-                    Select::make('country_id')->relationship('country', 'name')->required(),
-                    TextInput::make('name')->required()->maxLength(255)
+                    TextInput::make('name')->required()->maxLength(255),
+                    TextInput::make('email')->label('Email Address')->required()->maxLength(255),
+
+                    TextInput::make('password')
+                    ->password()
+                    ->required()
+                    ->minLength(8)
+                    ->same('passwordConfirmation')
+                    ->dehydrated(fn ($state) => filled($state))
+                    ->dehydrateStateUsing(fn ($state) => Hash::make($state)),
+
+                    TextInput::make('passwordConfirmation')->password()->label('Confirm Password')->required('fn (Page $livewire): bool => $livewire instanceof createRecord')->minLength(8)->dehydrated(false),
                 ])
             ]);
     }
@@ -44,7 +53,7 @@ class StateResource extends Resource
             ->columns([
                 TextColumn::make('id')->sortable(),
                 TextColumn::make('name')->sortable()->searchable(),
-                TextColumn::make('country.name')->sortable(),
+                TextColumn::make('email')->sortable()->searchable(),
                 TextColumn::make('created_at')->dateTime()
             ])
             ->filters([
@@ -61,17 +70,16 @@ class StateResource extends Resource
     public static function getRelations(): array
     {
         return [
-            RelationManagers\EmployeesRelationManager::class,
-            RelationManagers\CitiesRelationManager::class
+            //
         ];
     }
 
     public static function getPages(): array
     {
         return [
-            'index' => Pages\ListStates::route('/'),
-            'create' => Pages\CreateState::route('/create'),
-            'edit' => Pages\EditState::route('/{record}/edit'),
+            'index' => Pages\ListUsers::route('/'),
+            'create' => Pages\CreateUser::route('/create'),
+            'edit' => Pages\EditUser::route('/{record}/edit'),
         ];
     }
 }
