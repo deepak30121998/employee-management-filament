@@ -14,11 +14,11 @@ class Country extends Model
 
     public function employees()
     {
-        $this->hasMany(Employee::class);
+        return $this->hasMany(Employee::class);
     }
 
     public function states()
     {
-        $this->hasMany(State::class);
+        return $this->hasMany(State::class);
     }
 }
